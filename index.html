@@ -153,6 +153,52 @@
       .hero-inner{flex-direction:column;align-items:flex-start}
       .hero-count{font-size:32px}
     }
+
+    /* ── Vue liste (Tous les postes) ── */
+    .list-view{ display:flex; flex-direction:column; gap:0; }
+    .list-row{
+      display:grid;
+      grid-template-columns: 1fr 160px 130px 130px 90px 36px;
+      align-items:center;
+      gap:10px;
+      padding:11px 16px;
+      background:white;
+      border-bottom:1px solid var(--ligne);
+      cursor:pointer;
+      transition:background .15s;
+    }
+    .list-row:first-child{ border-radius:14px 14px 0 0; }
+    .list-row:last-child { border-radius:0 0 14px 14px; border-bottom:none; }
+    .list-row:only-child { border-radius:14px; }
+    .list-row:hover{ background:#f4f6fa; }
+    .list-titre{
+      font-size:13px; font-weight:700; color:var(--texte);
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .list-badges{ display:flex; gap:4px; margin-top:2px; flex-wrap:wrap; }
+    .list-badge{ font-size:10px; padding:1px 6px; border-radius:999px; font-weight:600; }
+    .lb-chance  { background:#FEF9C3; color:#854D0E; }
+    .lb-ouvert  { background:#DCFCE7; color:#166534; }
+    .lb-perm    { background:#EEF3FB; color:#1C3D6E; }
+    .list-ent  { font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .list-terr { font-size:12px; color:var(--bleu-med); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .list-contrat{ font-size:11px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .list-date { font-size:11px; color:var(--muted); text-align:right; white-space:nowrap; }
+    .list-arrow{ color:var(--bleu-med); font-size:16px; text-align:center; }
+    /* Highlight flash après navigation depuis liste */
+    .card-highlight{
+      animation: highlight-flash 3s ease forwards;
+    }
+    @keyframes highlight-flash {
+      0%   { box-shadow: 0 0 0 3px #E8336D, 0 8px 32px rgba(232,51,109,.25); }
+      70%  { box-shadow: 0 0 0 3px #E8336D, 0 8px 32px rgba(232,51,109,.25); }
+      100% { box-shadow: none; }
+    }
+    @media(max-width:600px){
+      .list-row{ grid-template-columns: 1fr 100px 36px; }
+      .list-ent,.list-terr,.list-contrat,.list-date{ display:none; }
+      .list-terr{ display:block; }
+    }
   </style>
 </head>
 <body>
@@ -417,7 +463,7 @@
     var btnHref   = postulerUrl ? esc(postulerUrl) : "#";
     var btnTarget = postulerUrl ? 'target="_blank" rel="noopener"' : "";
 
-    return '<div class="card ' + featured + '" style="animation-delay:' + delay + 's">'
+    return '<div class="card ' + featured + '" data-id="' + o.id + '" style="animation-delay:' + delay + 's">'
       + '<div class="band ' + bandClass + '"></div>'
       + '<div class="inner">'
       +   ftag
@@ -471,22 +517,100 @@
   var filtreActif = "";
 
   // ── Afficher selon le filtre actif ────────────────────────────
+  var offresIdPendingHighlight = null; // id de la carte à highlighter après rendu
+
   function afficherOffres() {
     var grid = document.getElementById("grid");
     var filtered = filtreActif
       ? allOffres.filter(function(o){
           return (o.territoire || "").toLowerCase().indexOf(filtreActif.toLowerCase()) !== -1;
         })
-      : allOffres;
+      : allOffres.slice(); // copie pour ne pas modifier allOffres
 
     if (!filtered.length) {
       grid.innerHTML = renderVide(filtreActif);
       return;
     }
 
+    // Vue liste : "Tous les postes" (pas de filtre territoire)
+    if (!filtreActif) {
+      // Tri date décroissante — on se base sur l'id (= numéro de ligne Sheets, croissant = plus récent)
+      var sorted = filtered.slice().sort(function(a, b){ return b.id - a.id; });
+      grid.className = "list-view";
+      grid.innerHTML = sorted.map(function(o){ return renderRow(o); }).join("");
+
+      // Listener clics sur les lignes
+      grid.querySelectorAll(".list-row").forEach(function(row){
+        row.addEventListener("click", function(){
+          var territoire = row.dataset.territoire || "";
+          var id         = parseInt(row.dataset.id, 10);
+          naviguerVersOffre(territoire, id);
+        });
+      });
+      return;
+    }
+
+    // Vue cartes : filtre territoire actif
+    grid.className = "grid";
     grid.innerHTML = filtered.map(function(o, i){
       return renderCard(o, 0.04 + i * 0.06);
     }).join("");
+
+    // Highlight si on vient d'un clic depuis la liste
+    if (offresIdPendingHighlight !== null) {
+      var idToHL = offresIdPendingHighlight;
+      offresIdPendingHighlight = null;
+      setTimeout(function(){
+        var card = grid.querySelector('[data-id="' + idToHL + '"]');
+        if (card) {
+          card.classList.add("card-highlight");
+          card.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 120);
+    }
+  }
+
+  // ── Clic sur une ligne → bascule vers le territoire et highlight ──
+  function naviguerVersOffre(territoire, id) {
+    offresIdPendingHighlight = id;
+    // Activer le chip territoire correspondant
+    var chipTrouve = false;
+    document.querySelectorAll(".chip").forEach(function(c){
+      c.classList.remove("active");
+      if (territoire && (c.dataset.territoire || "").toLowerCase().indexOf(territoire.toLowerCase()) !== -1) {
+        c.classList.add("active");
+        filtreActif = c.dataset.territoire;
+        chipTrouve  = true;
+      }
+    });
+    // Fallback si territoire non trouvé : premier chip territoire
+    if (!chipTrouve && territoire) {
+      var chips = document.querySelectorAll(".chip:not([data-territoire=''])");
+      if (chips.length) { chips[0].classList.add("active"); filtreActif = chips[0].dataset.territoire; }
+    }
+    afficherOffres();
+  }
+
+  // ── Rendu d'une ligne (vue liste) ─────────────────────────────
+  function renderRow(o) {
+    var badgesHtml = "";
+    (o.badges || []).forEach(function(b){
+      if (b.type === "chance")   badgesHtml += '<span class="list-badge lb-chance">🔥 Pénurique</span>';
+      if (b.type === "ouvert")   badgesHtml += '<span class="list-badge lb-ouvert">✅ Ouvert</span>';
+      if (b.type === "permanent")badgesHtml += '<span class="list-badge lb-perm">🔁 Permanent</span>';
+    });
+    var dateLabel = o.label || "";
+    var contrat   = (o.contrat || "").split("·")[0].trim(); // juste "CDI" ou "CDD 4 mois"
+    return '<div class="list-row" data-territoire="' + esc(o.territoire || "") + '" data-id="' + o.id + '">'
+      + '<div><div class="list-titre">' + esc(o.titre) + '</div>'
+      +   (badgesHtml ? '<div class="list-badges">' + badgesHtml + '</div>' : '')
+      + '</div>'
+      + '<div class="list-ent">' + esc(o.entreprise || "") + '</div>'
+      + '<div class="list-terr">' + esc(o.territoire || "Savoie") + '</div>'
+      + '<div class="list-contrat">' + esc(contrat) + '</div>'
+      + '<div class="list-date">' + esc(dateLabel) + '</div>'
+      + '<div class="list-arrow">›</div>'
+      + '</div>';
   }
 
   // ── Chargement depuis l'API ───────────────────────────────────
