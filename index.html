@@ -52,12 +52,12 @@
     .inner{padding:18px 18px 12px;flex:1;display:flex;flex-direction:column}
 
     /* Contact */
-    .contact-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--ligne)}
+    .contact-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--ligne)}
     .av{width:42px;height:42px;border-radius:50%;flex-shrink:0;overflow:hidden;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,.12);background:linear-gradient(135deg,var(--rose),var(--bleu-med));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:white}
     .av img{width:100%;height:100%;object-fit:cover}
     .ct{flex:1;min-width:0}
-    .cn{font-size:13px;font-weight:600;color:var(--texte);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .cr{font-size:11px;color:var(--muted);margin-top:1px}
+    .cn{font-size:13px;font-weight:700;color:var(--texte);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .cr{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
     .fl{flex-shrink:0;font-size:10px;font-weight:600;padding:4px 9px;border-radius:999px;background:var(--bleu-pale);color:var(--bleu);text-decoration:none;white-space:nowrap;transition:.15s}
     .fl:hover{background:var(--bleu);color:white}
 
@@ -69,9 +69,9 @@
 
     /* Infos */
     .infos{display:flex;flex-direction:column;gap:6px;margin-bottom:13px}
-    .il{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--texte)}
+    .il{display:flex;align-items:baseline;gap:7px;font-size:12px;color:var(--texte);padding:2px 0}
     .ii{font-size:13px;flex-shrink:0;width:20px;text-align:center}
-    .lb{color:var(--muted);font-size:11px;margin-right:2px}
+    .lb{color:var(--muted);font-size:11px;min-width:58px;flex-shrink:0;font-weight:600}
 
     /* Badges */
     .badges{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:13px}
@@ -396,7 +396,7 @@
     // Boutons entreprise : Page entreprise + Voir les autres offres
     var btnEntreprise = "";
     var pageEnt = contact.page || "";
-    var offresUrl = contact.offres || contact.googleJobsUrl || "";
+    var offresUrl = contact.googleJobsUrl || contact.offres || "";
     if (pageEnt)   btnEntreprise += '<a href="' + esc(pageEnt)   + '" class="btn-ent btn-page"   target="_blank" rel="noopener">🏢 Page entreprise</a>';
     if (offresUrl) btnEntreprise += '<a href="' + esc(offresUrl) + '" class="btn-ent btn-offres" target="_blank" rel="noopener">🔍 Autres offres</a>';
 
@@ -418,7 +418,8 @@
     var dotClass = "s-" + (o.statut || "ok");
 
     // Bouton postuler : Google Jobs en priorité, puis URL offre source
-    var postulerUrl = o.googleJobsUrl || o.url || "";
+    // Postuler → URL de l'offre source (France Travail, Indeed, site employeur…)
+    var postulerUrl = o.url || "";
     var btnHref   = postulerUrl ? esc(postulerUrl) : "#";
     var btnTarget = postulerUrl ? 'target="_blank" rel="noopener"' : "";
 
