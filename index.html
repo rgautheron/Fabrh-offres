@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Offres d'emploi — Fab'RH Savoie</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root{
+      --rose:#E8336D;--rose-dark:#B8225A;--bleu:#1C3D6E;--bleu-med:#2D5FA6;
+      --bleu-pale:#EEF3FB;--or:#F5A623;--vert:#22C55E;--vert-pale:#F0FDF6;
+      --rouge:#EF4444;--gris:#F4F6FA;--ligne:#E8ECF4;--texte:#18202E;--muted:#7B8599;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;background:#EEF0F6;color:var(--texte);min-height:100vh}
+
+    /* ── Hero ── */
+    .hero{background:linear-gradient(140deg,#0F2547 0%,#1C3D6E 55%,#2150A0 100%);padding:28px 20px 62px;position:relative;overflow:hidden}
+    .hero::after{content:'';position:absolute;bottom:-36px;left:0;right:0;height:72px;background:#EEF0F6;clip-path:ellipse(60% 100% at 50% 100%)}
+    .hero-deco{position:absolute;top:-55px;right:-55px;width:240px;height:240px;border-radius:50%;border:50px solid rgba(232,51,109,.1);pointer-events:none}
+    .hero-inner{max-width:1000px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px;position:relative;z-index:1}
+    .hero-left{display:flex;align-items:center;gap:13px}
+    .logo-box{width:48px;height:48px;border-radius:12px;background:white;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.2);flex-shrink:0}
+    .hero-title{font-family:'Syne',sans-serif;font-size:21px;font-weight:800;color:white;line-height:1.15}
+    .hero-sub{font-size:11px;color:rgba(255,255,255,.5);margin-top:3px}
+    .hero-stat{text-align:right;flex-shrink:0}
+    .hero-count{font-family:'Syne',sans-serif;font-size:40px;font-weight:800;color:white;line-height:1;letter-spacing:-2px}
+    .hero-count-label{font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px}
+
+    /* ── Page ── */
+    .page{max-width:1000px;margin:0 auto;padding:0 16px 50px}
+
+    /* ── Filtres ── */
+    .filter-bar{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 22px;padding-top:10px}
+    .chip{padding:6px 14px;border-radius:999px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid var(--ligne);background:white;color:var(--muted);transition:all .18s;user-select:none}
+    .chip.active{background:var(--rose);border-color:var(--rose);color:white;font-weight:600;box-shadow:0 4px 10px rgba(232,51,109,.28)}
+    .chip:hover:not(.active){border-color:var(--rose);color:var(--rose)}
+
+    /* ── Grille ── */
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px}
+
+    /* ── Carte ── */
+    .card{background:white;border-radius:20px;border:1px solid var(--ligne);overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.04);display:flex;flex-direction:column;transition:transform .22s cubic-bezier(.34,1.56,.64,1),box-shadow .22s;animation:up .4s ease both}
+    .card:hover{transform:translateY(-5px);box-shadow:0 12px 32px rgba(28,61,110,.12)}
+    @keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+    .band{height:4px;background:linear-gradient(90deg,var(--rose),var(--or))}
+    .band.hot{background:linear-gradient(90deg,#EF4444,#F97316)}
+    .band.warm{background:linear-gradient(90deg,var(--or),#84CC16)}
+    .band.cool{background:linear-gradient(90deg,var(--vert),#0EA5E9)}
+
+    .inner{padding:18px 18px 12px;flex:1;display:flex;flex-direction:column}
+
+    /* Contact */
+    .contact-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--ligne)}
+    .av{width:42px;height:42px;border-radius:50%;flex-shrink:0;overflow:hidden;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,.12);background:linear-gradient(135deg,var(--rose),var(--bleu-med));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:white}
+    .av img{width:100%;height:100%;object-fit:cover}
+    .ct{flex:1;min-width:0}
+    .cn{font-size:13px;font-weight:600;color:var(--texte);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .cr{font-size:11px;color:var(--muted);margin-top:1px}
+    .fl{flex-shrink:0;font-size:10px;font-weight:600;padding:4px 9px;border-radius:999px;background:var(--bleu-pale);color:var(--bleu);text-decoration:none;white-space:nowrap;transition:.15s}
+    .fl:hover{background:var(--bleu);color:white}
+
+    /* Titre */
+    .ent{font-size:12px;font-weight:600;color:var(--bleu-med);margin-bottom:3px}
+    .titre{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;line-height:1.2;color:var(--texte);margin-bottom:5px}
+    .terr{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);margin-bottom:13px}
+    .td{width:6px;height:6px;border-radius:50%;background:var(--rose);flex-shrink:0}
+
+    /* Infos */
+    .infos{display:flex;flex-direction:column;gap:6px;margin-bottom:13px}
+    .il{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--texte)}
+    .ii{font-size:13px;flex-shrink:0;width:20px;text-align:center}
+    .lb{color:var(--muted);font-size:11px;margin-right:2px}
+
+    /* Badges */
+    .badges{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:13px}
+    .bdg{font-size:10px;font-weight:600;padding:4px 9px;border-radius:999px;display:inline-flex;align-items:center;gap:3px}
+    .bc{background:#FFF0F5;color:#BE185D}
+    .bo{background:var(--vert-pale);color:#166534}
+    .bl{background:var(--bleu-pale);color:var(--bleu)}
+    .ba{background:#FFF7ED;color:#C2410C}
+    .bk{background:#F3F0FF;color:#6D28D9}
+    .bp{background:#EEF3FB;color:#1C3D6E;border:1px solid #C7D7F0}
+
+    /* Pied */
+    .foot{padding:10px 18px 14px;border-top:1px solid var(--ligne);display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto}
+    .exp{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted)}
+    .ed{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+    .s-ok{background:var(--vert)}.s-warn{background:var(--or)}.s-hot{background:var(--rouge)}
+    .btn-postuler{padding:8px 15px;border-radius:999px;background:linear-gradient(90deg,var(--rose),var(--rose-dark));color:white;font-size:12px;font-weight:600;text-decoration:none;box-shadow:0 3px 10px rgba(232,51,109,.28);white-space:nowrap;transition:.18s}
+    .btn-postuler:hover{filter:brightness(1.08)}
+
+    /* Vedette */
+    .featured{border-color:rgba(232,51,109,.3);box-shadow:0 0 0 3px rgba(232,51,109,.06),0 3px 16px rgba(232,51,109,.09)}
+    .ftag{display:inline-flex;align-items:center;gap:5px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--rose);margin-bottom:10px}
+    .ftag::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--rose);animation:p 1.5s infinite}
+    @keyframes p{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.8)}}
+
+    /* États chargement / erreur / vide */
+    .state-block{text-align:center;padding:60px 20px;color:var(--muted)}
+    .state-icon{font-size:40px;margin-bottom:12px}
+    .state-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--texte);margin-bottom:6px}
+    .state-sub{font-size:13px}
+    .spinner{width:36px;height:36px;border:3px solid var(--ligne);border-top-color:var(--rose);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 16px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .pf{text-align:center;margin-top:32px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+
+    /* ── Bloc abonnement ── */
+    .abo-block{margin-top:40px;background:white;border-radius:24px;border:1px solid var(--ligne);padding:32px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+    .abo-header{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+    .abo-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--rose),#B8225A);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+    .abo-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--bleu)}
+    .abo-sub{font-size:13px;color:var(--muted);margin-bottom:22px;line-height:1.5}
+    .abo-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+    .abo-field{display:flex;flex-direction:column;gap:5px}
+    .abo-label{font-size:11px;font-weight:600;color:var(--bleu);text-transform:uppercase;letter-spacing:.5px}
+    .abo-input{padding:12px 16px;border:1.5px solid var(--ligne);border-radius:50px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--texte);background:#FAFBFC;outline:none;transition:.18s}
+    .abo-input:focus{border-color:var(--rose);background:white}
+    .abo-input::placeholder{color:var(--muted)}
+    .abo-terr-title{font-size:11px;font-weight:600;color:var(--bleu);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+    .terr-grid{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:20px}
+    .terr-chip{padding:7px 14px;border-radius:999px;border:1.5px solid var(--ligne);background:white;color:var(--muted);font-size:12px;font-weight:500;cursor:pointer;user-select:none;transition:.18s}
+    .terr-chip:hover{border-color:var(--rose);color:var(--rose)}
+    .terr-chip.sel{background:var(--rose);border-color:var(--rose);color:white;font-weight:600}
+    .terr-chip.all{border-color:var(--bleu);color:var(--bleu)}
+    .terr-chip.all.sel{background:var(--bleu);border-color:var(--bleu);color:white}
+    .btn-abo{width:100%;padding:14px;border:none;border-radius:50px;background:linear-gradient(90deg,var(--rose),var(--rose-dark));color:white;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:.3px;box-shadow:0 4px 14px rgba(232,51,109,.28);transition:.2s}
+    .btn-abo:hover{filter:brightness(1.06);transform:scale(1.01)}
+    .btn-abo:disabled{opacity:.6;cursor:not-allowed;transform:none}
+    .abo-msg{margin-top:14px;padding:12px 16px;border-radius:12px;font-size:13px;text-align:center;display:none}
+    .abo-msg.ok{background:#F0FDF6;color:#166534;border:1px solid #A7F3D0;display:block}
+    .abo-msg.err{background:#FFF0F0;color:#B91C1C;border:1px solid #FCA5A5;display:block}
+    @media(max-width:560px){.abo-fields{grid-template-columns:1fr}}
+
+    @media(max-width:560px){
+      .grid{grid-template-columns:1fr}
+      .hero-inner{flex-direction:column;align-items:flex-start}
+      .hero-count{font-size:32px}
+    }
+  </style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-deco"></div>
+  <div class="hero-inner">
+    <div class="hero-left">
+      <div class="logo-box">
+        <svg viewBox="0 0 44 44" width="36" height="36">
+          <circle cx="22" cy="22" r="18" fill="none" stroke="#E8336D" stroke-width="2.5"/>
+          <circle cx="22" cy="10" r="5" fill="#E8336D"/>
+          <circle cx="33" cy="28" r="4" fill="#F5A623"/>
+          <circle cx="11" cy="28" r="4" fill="#22C55E"/>
+          <circle cx="31" cy="13" r="3" fill="#2D5FA6"/>
+          <circle cx="13" cy="13" r="3" fill="#A855F7"/>
+        </svg>
+      </div>
+      <div>
+        <div class="hero-title">Offres d'emploi<br>Fab'RH Savoie</div>
+        <div class="hero-sub">Postes déposés par les employeurs membres du réseau</div>
+      </div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-count" id="heroCount">—</div>
+      <div class="hero-count-label">offres actives</div>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- FILTRES -->
+  <div class="filter-bar" id="filterBar">
+    <div class="chip active" data-territoire="">Tous les postes</div>
+    <div class="chip" data-territoire="Grand Chambéry">Grand Chambéry</div>
+    <div class="chip" data-territoire="Arlysère">Arlysère</div>
+    <div class="chip" data-territoire="Maurienne">Maurienne</div>
+    <div class="chip" data-territoire="Grand Lac">Grand Lac</div>
+    <div class="chip" data-territoire="Tarentaise">Tarentaise</div>
+    <div class="chip" data-territoire="Avant-Pays">Avant-Pays</div>
+    <div class="chip" data-territoire="Cœur de Savoie">Cœur de Savoie</div>
+  </div>
+
+  <!-- GRILLE -->
+  <div id="grid" class="grid">
+    <div class="state-block" style="grid-column:1/-1">
+      <div class="spinner"></div>
+      <div class="state-title">Chargement des offres…</div>
+    </div>
+  </div>
+
+  <!-- ABONNEMENT -->
+  <div class="abo-block">
+    <div class="abo-header">
+      <div class="abo-icon">🔔</div>
+      <div class="abo-title">Recevoir les nouvelles offres</div>
+    </div>
+    <div class="abo-sub">Soyez alerté par email dès qu'une offre est publiée sur votre territoire. Désinscription en un clic.</div>
+
+    <div class="abo-fields">
+      <div class="abo-field">
+        <div class="abo-label">Votre email</div>
+        <input id="aboEmail" class="abo-input" type="email" placeholder="prenom@email.fr" />
+      </div>
+      <div class="abo-field">
+        <div class="abo-label">Votre prénom <span style="font-weight:400;color:var(--muted)">(facultatif)</span></div>
+        <input id="aboPrenom" class="abo-input" type="text" placeholder="Marie" />
+      </div>
+    </div>
+
+    <div class="abo-terr-title">Territoires qui vous intéressent</div>
+    <div class="terr-grid" id="terrGrid">
+      <div class="terr-chip all" data-terr="Toute la Savoie">🗺️ Toute la Savoie</div>
+      <div class="terr-chip" data-terr="Grand Chambéry">Grand Chambéry</div>
+      <div class="terr-chip" data-terr="Arlysère">Arlysère</div>
+      <div class="terr-chip" data-terr="Maurienne">Maurienne</div>
+      <div class="terr-chip" data-terr="Grand Lac">Grand Lac</div>
+      <div class="terr-chip" data-terr="Tarentaise Vanoise">Tarentaise</div>
+      <div class="terr-chip" data-terr="Cœur de Savoie">Cœur de Savoie</div>
+      <div class="terr-chip" data-terr="Avant-Pays Savoyard">Avant-Pays</div>
+    </div>
+
+    <button class="btn-abo" id="btnAbo">M'abonner aux alertes →</button>
+    <div class="abo-msg" id="aboMsg"></div>
+  </div>
+
+  <div class="pf">Fab'RH Savoie · Réseau employeurs · fab-rh-savoie.fr</div>
+</div>
+
+<script>
+  // ── Sélection territoires ─────────────────────────────────────
+  var terrSelectionnes = new Set();
+
+  document.getElementById("terrGrid").addEventListener("click", function(e) {
+    var chip = e.target.closest(".terr-chip");
+    if (!chip) return;
+    var terr = chip.dataset.terr;
+
+    // "Toute la Savoie" exclusif
+    if (terr === "Toute la Savoie") {
+      terrSelectionnes.clear();
+      document.querySelectorAll(".terr-chip").forEach(function(c){ c.classList.remove("sel"); });
+      if (!chip.classList.contains("sel")) {
+        chip.classList.add("sel");
+        terrSelectionnes.add(terr);
+      }
+      return;
+    }
+
+    // Désélectionner "Toute la Savoie" si on choisit un territoire
+    var all = document.querySelector(".terr-chip.all");
+    if (all) { all.classList.remove("sel"); terrSelectionnes.delete("Toute la Savoie"); }
+
+    chip.classList.toggle("sel");
+    if (chip.classList.contains("sel")) terrSelectionnes.add(terr);
+    else terrSelectionnes.delete(terr);
+  });
+
+  // ── Préremplir prénom si email connu ─────────────────────────
+  var debounceTimer;
+  document.getElementById("aboEmail").addEventListener("input", function() {
+    clearTimeout(debounceTimer);
+    var email = this.value.trim();
+    if (!email.includes("@") || email.length < 6) return;
+    debounceTimer = setTimeout(function() { checkEmailConnu(email); }, 600);
+  });
+
+  async function checkEmailConnu(email) {
+    try {
+      var res  = await fetch(API_URL + "?action=check_candidat&email=" + encodeURIComponent(email), { cache: "no-store" });
+      var data = await res.json();
+      if (data.connu && data.prenom) {
+        var prenomField = document.getElementById("aboPrenom");
+        if (!prenomField.value) prenomField.value = data.prenom;
+      }
+    } catch(e) { /* silencieux */ }
+  }
+
+  // ── Abonnement ────────────────────────────────────────────────
+  document.getElementById("btnAbo").addEventListener("click", async function() {
+    var email  = document.getElementById("aboEmail").value.trim();
+    var prenom = document.getElementById("aboPrenom").value.trim();
+    var msg    = document.getElementById("aboMsg");
+    var btn    = document.getElementById("btnAbo");
+
+    msg.className = "abo-msg";
+    msg.textContent = "";
+
+    if (!email || !email.includes("@")) {
+      msg.textContent = "⚠️ Veuillez saisir une adresse email valide.";
+      msg.className = "abo-msg err";
+      return;
+    }
+
+    if (terrSelectionnes.size === 0) {
+      msg.textContent = "⚠️ Sélectionnez au moins un territoire.";
+      msg.className = "abo-msg err";
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "Enregistrement…";
+
+    try {
+      var terrParam = Array.from(terrSelectionnes).join("|");
+      var url = API_URL
+        + "?action=abonner"
+        + "&email="      + encodeURIComponent(email)
+        + "&prenom="     + encodeURIComponent(prenom)
+        + "&territoires="+ encodeURIComponent(terrParam);
+
+      var res  = await fetch(url, { cache: "no-store" });
+      var data = await res.json();
+
+      if (data.ok) {
+        msg.textContent = "✅ " + (prenom ? "Parfait " + prenom + " !" : "C'est enregistré !") + " Vous recevrez une alerte à chaque nouvelle offre sur votre territoire.";
+        msg.className = "abo-msg ok";
+        btn.textContent = "Abonnement confirmé ✓";
+      } else {
+        throw new Error(data.reason || "Erreur inconnue");
+      }
+    } catch(err) {
+      msg.textContent = "❌ Une erreur est survenue. Réessayez dans quelques instants.";
+      msg.className = "abo-msg err";
+      btn.disabled = false;
+      btn.textContent = "M\'abonner aux alertes →";
+    }
+  });
+
+  // ── À remplacer par l'URL de ton Apps Script déployé ──────────
+  const API_URL = "https://script.google.com/macros/s/AKfycbwwC1AacUf1xj3-fmg_QPv9J8u9aqQbd-X4IoA0t1MRjSt_riQ6N5MuVUmG-ajWtm7l/exec";
+
+  // ── Couleurs avatar selon initiale ────────────────────────────
+  const AVATAR_GRADIENTS = [
+    "linear-gradient(135deg,#E8336D,#2D5FA6)",
+    "linear-gradient(135deg,#F97316,#EF4444)",
+    "linear-gradient(135deg,#8B5CF6,#3B82F6)",
+    "linear-gradient(135deg,#10B981,#059669)",
+    "linear-gradient(135deg,#0EA5E9,#1C3D6E)",
+    "linear-gradient(135deg,#F59E0B,#EF4444)",
+    "linear-gradient(135deg,#EC4899,#8B5CF6)"
+  ];
+
+  function gradientFor(str) {
+    var code = 0;
+    for (var i = 0; i < (str||"").length; i++) code += str.charCodeAt(i);
+    return AVATAR_GRADIENTS[code % AVATAR_GRADIENTS.length];
+  }
+
+  // ── Types de badges ───────────────────────────────────────────
+  const BADGE_CLASSES = {
+    chance: "bc", ouvert: "bo", local: "bl", avantage: "ba", contrat: "bk", permanent: "bp"
+  };
+
+  function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+  // ── Rendu d'une carte ─────────────────────────────────────────
+  function renderCard(o, delay) {
+    var featured  = o.featured ? "featured" : "";
+    var ftag      = o.featured ? '<div class="ftag">★ Offre mise en avant</div>' : "";
+    var bandClass = esc(o.bande || "warm");
+
+    // Avatar : photo si dispo, sinon initiale
+    var contact = o.contact || {};
+    var initiale = (contact.nom || "?").trim()[0].toUpperCase();
+    var avatarStyle = "background:" + gradientFor(contact.nom);
+    var avatarInner = contact.photo
+      ? '<img src="' + esc(contact.photo) + '" alt="' + esc(contact.nom) + '" onerror="this.style.display=\'none\'">'
+      : initiale;
+
+    // Lien profil Fab'RH
+    var profilLink = contact.profil
+      ? '<a href="' + esc(contact.profil) + '" class="fl" target="_blank">Profil Fab\'RH</a>'
+      : "";
+
+    // Infos : contrat toujours, salaire si dispo, horaires/avantages si dispo
+    var infos = "";
+    if (o.contrat)   infos += '<div class="il"><span class="ii">📋</span><span class="lb">Contrat</span>' + esc(o.contrat)   + "</div>";
+    if (o.salaire)   infos += '<div class="il"><span class="ii">💶</span><span class="lb">Salaire</span>'  + esc(o.salaire)   + "</div>";
+    if (o.horaires)  infos += '<div class="il"><span class="ii">⏰</span><span class="lb">Rythme</span>'   + esc(o.horaires)  + "</div>";
+    if (o.avantages) infos += '<div class="il"><span class="ii">🎁</span><span class="lb">Avantages</span>'+ esc(o.avantages) + "</div>";
+    if (!infos)      infos  = '<div class="il"><span class="ii">📋</span><span class="lb">Offre</span>Voir le détail</div>';
+
+    // Badges
+    var badgesHtml = (o.badges || []).map(function(b){
+      var cls = BADGE_CLASSES[b.type] || "bc";
+      return '<span class="bdg ' + cls + '">' + esc(b.label) + "</span>";
+    }).join("");
+
+    // Statut expiration
+    var dotClass = "s-" + (o.statut || "ok");
+
+    // Bouton postuler
+    var btnHref = o.url ? esc(o.url) : "#";
+    var btnTarget = o.url ? 'target="_blank" rel="noopener"' : "";
+
+    return '<div class="card ' + featured + '" style="animation-delay:' + delay + 's">'
+      + '<div class="band ' + bandClass + '"></div>'
+      + '<div class="inner">'
+      +   ftag
+      +   '<div class="contact-row">'
+      +     '<div class="av" style="' + avatarStyle + '">' + avatarInner + "</div>"
+      +     '<div class="ct">'
+      +       '<div class="cn">' + esc(contact.nom  || "Contact Fab'RH") + "</div>"
+      +       '<div class="cr">' + esc(contact.role || "") + (contact.role && o.entreprise ? " · " : "") + esc(o.entreprise || "") + "</div>"
+      +     "</div>"
+      +     profilLink
+      +   "</div>"
+      +   '<div class="ent">' + esc(o.entreprise || "") + "</div>"
+      +   '<div class="titre">' + esc(o.titre) + "</div>"
+      +   '<div class="terr"><div class="td"></div>' + esc(o.territoire || "Savoie") + "</div>"
+      +   '<div class="infos">' + infos + "</div>"
+      +   (badgesHtml ? '<div class="badges">' + badgesHtml + "</div>" : "")
+      + "</div>"
+      + '<div class="foot">'
+      +   '<div class="exp"><div class="ed ' + dotClass + '"></div>' + esc(o.label || "") + "</div>"
+      +   '<a href="' + btnHref + '" class="btn-postuler" ' + btnTarget + ">Postuler →</a>"
+      + "</div>"
+      + "</div>";
+  }
+
+  // ── État vide ─────────────────────────────────────────────────
+  function renderVide(filtre) {
+    return '<div class="state-block" style="grid-column:1/-1">'
+      + '<div class="state-icon">🔍</div>'
+      + '<div class="state-title">Aucune offre' + (filtre ? " sur ce territoire" : "") + "</div>"
+      + '<div class="state-sub">Revenez prochainement, de nouvelles offres sont ajoutées régulièrement.</div>'
+      + "</div>";
+  }
+
+  // ── État erreur ───────────────────────────────────────────────
+  function renderErreur() {
+    return '<div class="state-block" style="grid-column:1/-1">'
+      + '<div class="state-icon">⚠️</div>'
+      + '<div class="state-title">Impossible de charger les offres</div>'
+      + '<div class="state-sub">Veuillez réessayer dans quelques instants.</div>'
+      + "</div>";
+  }
+
+  // ── Données en mémoire ────────────────────────────────────────
+  var allOffres = [];
+  var filtreActif = "";
+
+  // ── Afficher selon le filtre actif ────────────────────────────
+  function afficherOffres() {
+    var grid = document.getElementById("grid");
+    var filtered = filtreActif
+      ? allOffres.filter(function(o){
+          return (o.territoire || "").toLowerCase().indexOf(filtreActif.toLowerCase()) !== -1;
+        })
+      : allOffres;
+
+    if (!filtered.length) {
+      grid.innerHTML = renderVide(filtreActif);
+      return;
+    }
+
+    grid.innerHTML = filtered.map(function(o, i){
+      return renderCard(o, 0.04 + i * 0.06);
+    }).join("");
+  }
+
+  // ── Chargement depuis l'API ───────────────────────────────────
+  async function chargerOffres() {
+    try {
+      var res  = await fetch(API_URL + "?action=offres", { cache: "no-store" });
+      var data = await res.json();
+
+      if (!data.ok || !data.offres) throw new Error("Réponse invalide");
+
+      allOffres = data.offres;
+      document.getElementById("heroCount").textContent = data.total || 0;
+      afficherOffres();
+
+    } catch(err) {
+      console.error("Erreur chargement offres :", err);
+      document.getElementById("heroCount").textContent = "—";
+      document.getElementById("grid").innerHTML = renderErreur();
+    }
+  }
+
+  // ── Filtres ───────────────────────────────────────────────────
+  document.getElementById("filterBar").addEventListener("click", function(e) {
+    var chip = e.target.closest(".chip");
+    if (!chip) return;
+
+    document.querySelectorAll(".chip").forEach(function(c){ c.classList.remove("active"); });
+    chip.classList.add("active");
+
+    filtreActif = chip.dataset.territoire || "";
+    afficherOffres();
+  });
+
+  // ── Init ──────────────────────────────────────────────────────
+  chargerOffres();
+</script>
+
+</body>
+</html>
