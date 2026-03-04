@@ -13,7 +13,7 @@
       --rouge:#EF4444;--gris:#F4F6FA;--ligne:#E8ECF4;--texte:#18202E;--muted:#7B8599;
 
       /* ▼ TAILLE GÉNÉRALE — changer cette seule valeur pour tout redimensionner ▼ */
-      --zoom: 0.9;  /* 0.9 = 10% plus petit · 0.85 = 15% plus petit */
+      --zoom: 1;  /* 0.9 = 10% plus petit · 0.85 = 15% plus petit */
     }
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:'DM Sans',sans-serif;background:#EEF0F6;color:var(--texte);min-height:100vh}
@@ -239,6 +239,7 @@
     <div class="chip" data-territoire="Tarentaise">Tarentaise</div>
     <div class="chip" data-territoire="Avant-Pays">Avant-Pays</div>
     <div class="chip" data-territoire="Cœur de Savoie">Cœur de Savoie</div>
+    <div class="chip" data-territoire="Hors Savoie">Hors Savoie</div>
   </div>
 
   <!-- GRILLE -->
@@ -558,8 +559,11 @@
     var grid = document.getElementById("grid");
     var filtered = filtreActif
       ? allOffres.filter(function(o){
-          // Résoudre le territoire de l'offre pour comparer au chip actif
           var terrResolu = resoudreChipTerritoire(o.territoire || "");
+          if (filtreActif === "Hors Savoie") {
+            // Hors Savoie = aucun territoire canonique reconnu
+            return terrResolu === "";
+          }
           return terrResolu === filtreActif
               || (o.territoire || "").toLowerCase().indexOf(filtreActif.toLowerCase()) !== -1;
         })
@@ -622,12 +626,11 @@
         chipTrouve  = true;
       }
     });
-    // Fallback : si toujours pas trouvé, rester sur "Tous les postes"
+    // Fallback : territoire non reconnu → "Hors Savoie"
     if (!chipTrouve) {
-      var chipTous = document.querySelector(".chip[data-territoire='']");
-      if (chipTous) chipTous.classList.add("active");
-      filtreActif = "";
-      offresIdPendingHighlight = null;
+      var chipHS = document.querySelector(".chip[data-territoire='Hors Savoie']");
+      if (chipHS) { chipHS.classList.add("active"); filtreActif = "Hors Savoie"; }
+      else { filtreActif = ""; offresIdPendingHighlight = null; }
     }
     afficherOffres();
   }
