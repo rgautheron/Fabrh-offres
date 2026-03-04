@@ -512,6 +512,37 @@
       + "</div>";
   }
 
+
+  // ── Résolution territoire côté client ────────────────────────────────────
+  // Permet de normaliser les villes brutes renvoyées par l'API (ancien format)
+  // vers les noms canoniques des chips
+  var TERR_CHIPS = [
+    { chip: "Avant-Pays",     mots: ["avant-pays","avant pays","pont-de-beauvoisin","pont de beauvoisin","yenne","saint-genix","saint genix","belmont","romagnieu","val guiers","valguiers","domessin","rochefort","novalaise","dullin","attignat","saint-beron","saint beron","la bridoire","les aveni","aveni","veyrin","veyrins"] },
+    { chip: "Grand Chambéry", mots: ["chambéry","chambery","motte-servolex","motte servolex","jacob-belle","barberaz","cognin","saint-alban-leysse","saint alban leysse","bassens","montagnole","challes","grand chambéry","grand chambery","bissy","chignin","myans","les marches"] },
+    { chip: "Grand Lac",      mots: ["grand lac","aix-les-bains","aix les bains","bourget-du-lac","bourget du lac","rumilly","albens","tresserve","mouxy","voglans","grésy","gresy"] },
+    { chip: "Arlysère",       mots: ["albertville","ugine","arlysère","arlyse","beaufortain","flumet","hauteluce","queige","pallud","venthon","gilly","tours-en-savoie","tours en savoie","cevins","feissons"] },
+    { chip: "Cœur de Savoie", mots: ["montmélian","montmelian","saint-pierre-d","coeur de savoie","cœur de savoie","la rochette","pontcharra","goncelin","chamoux","mercury","frontenex","plancherine"] },
+    { chip: "Tarentaise",     mots: ["tarentaise","vanoise","bourg-saint-maurice","bourg saint maurice","moûtiers","moutiers","val-d'isere","val d isere","tignes","courchevel","méribel","meribel","saint-martin-de-belleville","la plagne","les menuires","val thorens","pralognan"] },
+    { chip: "Maurienne",      mots: ["maurienne","saint-jean-de-maurienne","saint jean de maurienne","modane","valloire","aussois","lanslebourg","termignon","bramans","saint-michel-de-maurienne","orelle","saint-julien","la chambre","la toussuire"] }
+  ];
+
+  function resoudreChipTerritoire(territoire) {
+    if (!territoire) return "";
+    var t = territoire.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+    for (var i = 0; i < TERR_CHIPS.length; i++) {
+      var entry = TERR_CHIPS[i];
+      // Correspondance directe avec le nom canonical (ex: "Avant-Pays Savoyard".indexOf("avant-pays") >= 0)
+      var chipNorm = entry.chip.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+      if (t.indexOf(chipNorm) !== -1) return entry.chip;
+      // Résolution par mots-clés
+      for (var j = 0; j < entry.mots.length; j++) {
+        var mot = entry.mots[j].normalize("NFD").replace(/[̀-ͯ]/g, "");
+        if (t.indexOf(mot) !== -1) return entry.chip;
+      }
+    }
+    return "";
+  }
+
   // ── Données en mémoire ────────────────────────────────────────
   var allOffres = [];
   var filtreActif = "";
@@ -523,7 +554,10 @@
     var grid = document.getElementById("grid");
     var filtered = filtreActif
       ? allOffres.filter(function(o){
-          return (o.territoire || "").toLowerCase().indexOf(filtreActif.toLowerCase()) !== -1;
+          // Résoudre le territoire de l'offre pour comparer au chip actif
+          var terrResolu = resoudreChipTerritoire(o.territoire || "");
+          return terrResolu === filtreActif
+              || (o.territoire || "").toLowerCase().indexOf(filtreActif.toLowerCase()) !== -1;
         })
       : allOffres.slice(); // copie pour ne pas modifier allOffres
 
@@ -573,22 +607,23 @@
   // ── Clic sur une ligne → bascule vers le territoire et highlight ──
   function naviguerVersOffre(territoire, id) {
     offresIdPendingHighlight = id;
-    // Activer le chip territoire correspondant
+    // Résoudre d'abord le nom canonique du chip (gère villes brutes ET noms complets)
+    var chipCible = resoudreChipTerritoire(territoire);
     var chipTrouve = false;
     document.querySelectorAll(".chip").forEach(function(c){
       c.classList.remove("active");
-      var chipVal = (c.dataset.territoire || "").toLowerCase();
-      // L'offre territoire doit CONTENIR la valeur du chip (ex: "avant-pays savoyard".indexOf("avant-pays") ≥ 0)
-      if (chipVal && territoire.toLowerCase().indexOf(chipVal) !== -1) {
+      if (chipCible && c.dataset.territoire === chipCible) {
         c.classList.add("active");
         filtreActif = c.dataset.territoire;
         chipTrouve  = true;
       }
     });
-    // Fallback si territoire non trouvé : premier chip territoire
-    if (!chipTrouve && territoire) {
-      var chips = document.querySelectorAll(".chip:not([data-territoire=''])");
-      if (chips.length) { chips[0].classList.add("active"); filtreActif = chips[0].dataset.territoire; }
+    // Fallback : si toujours pas trouvé, rester sur "Tous les postes"
+    if (!chipTrouve) {
+      var chipTous = document.querySelector(".chip[data-territoire='']");
+      if (chipTous) chipTous.classList.add("active");
+      filtreActif = "";
+      offresIdPendingHighlight = null;
     }
     afficherOffres();
   }
