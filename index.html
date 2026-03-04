@@ -11,9 +11,13 @@
       --rose:#E8336D;--rose-dark:#B8225A;--bleu:#1C3D6E;--bleu-med:#2D5FA6;
       --bleu-pale:#EEF3FB;--or:#F5A623;--vert:#22C55E;--vert-pale:#F0FDF6;
       --rouge:#EF4444;--gris:#F4F6FA;--ligne:#E8ECF4;--texte:#18202E;--muted:#7B8599;
+
+      /* ▼ TAILLE GÉNÉRALE — changer cette seule valeur pour tout redimensionner ▼ */
+      --zoom: 1;  /* 0.9 = 10% plus petit · 0.85 = 15% plus petit */
     }
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:'DM Sans',sans-serif;background:#EEF0F6;color:var(--texte);min-height:100vh}
+    .page{zoom:var(--zoom)}
 
     /* ── Hero ── */
     .hero{background:linear-gradient(140deg,#0F2547 0%,#1C3D6E 55%,#2150A0 100%);padding:28px 20px 62px;position:relative;overflow:hidden}
