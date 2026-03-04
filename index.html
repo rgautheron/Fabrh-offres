@@ -90,6 +90,19 @@
     .s-ok{background:var(--vert)}.s-warn{background:var(--or)}.s-hot{background:var(--rouge)}
     .btn-postuler{padding:8px 15px;border-radius:999px;background:linear-gradient(90deg,var(--rose),var(--rose-dark));color:white;font-size:12px;font-weight:600;text-decoration:none;box-shadow:0 3px 10px rgba(232,51,109,.28);white-space:nowrap;transition:.18s}
     .btn-postuler:hover{filter:brightness(1.08)}
+    /* Boutons entreprise */
+    .btns-ent{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 4px}
+    .btn-ent{padding:5px 11px;border-radius:999px;font-size:11px;font-weight:600;text-decoration:none;white-space:nowrap;transition:.18s;border:1.5px solid}
+    .btn-page{background:var(--bleu-pale);color:var(--bleu);border-color:rgba(28,61,110,.2)}
+    .btn-page:hover{background:#dce7f7;border-color:var(--bleu)}
+    .btn-offres{background:#FFF7ED;color:#92400E;border-color:#FDE68A}
+    .btn-offres:hover{background:#FEF3C7}
+    /* Liens profil multiples */
+    .fl{font-size:10px;color:var(--bleu-med);text-decoration:none;white-space:nowrap;padding:2px 6px;border-radius:6px;background:var(--bleu-pale);font-weight:600}
+    .fl:hover{background:#dce7f7}
+    .fl-linkedin{background:#EBF5FF;color:#0077B5}
+    .fl-linkedin:hover{background:#D6ECFF}
+    .fl-fabrh{background:var(--bleu-pale);color:var(--bleu)}
 
     /* Vedette */
     .featured{border-color:rgba(232,51,109,.3);box-shadow:0 0 0 3px rgba(232,51,109,.06),0 3px 16px rgba(232,51,109,.09)}
@@ -367,14 +380,25 @@
     var contact = o.contact || {};
     var initiale = (contact.nom || "?").trim()[0].toUpperCase();
     var avatarStyle = "background:" + gradientFor(contact.nom);
-    var avatarInner = contact.photo
-      ? '<img src="' + esc(contact.photo) + '" alt="' + esc(contact.nom) + '" onerror="this.style.display=\'none\'">'
+    // Photo : base64 ou URL — les deux supportés
+    var photoSrc = contact.photo || "";
+    var avatarInner = photoSrc
+      ? '<img src="' + photoSrc + '" alt="' + esc(contact.nom) + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.style.display=\'none\'">'
       : initiale;
 
-    // Lien profil Fab'RH
-    var profilLink = contact.profil
-      ? '<a href="' + esc(contact.profil) + '" class="fl" target="_blank">Profil Fab\'RH</a>'
-      : "";
+    // Liens contact : Profil Fab'RH et/ou LinkedIn
+    var profilFabrh  = contact.profil   || "";
+    var profilLinked = contact.linkedin || "";
+    var profilLinks  = "";
+    if (profilFabrh)  profilLinks += '<a href="' + esc(profilFabrh)  + '" class="fl fl-fabrh"  target="_blank">Profil Fab\u2019RH</a>';
+    if (profilLinked) profilLinks += '<a href="' + esc(profilLinked) + '" class="fl fl-linkedin" target="_blank">LinkedIn</a>';
+
+    // Boutons entreprise : Page entreprise + Voir les autres offres
+    var btnEntreprise = "";
+    var pageEnt = contact.page || "";
+    var offresUrl = contact.offres || contact.googleJobsUrl || "";
+    if (pageEnt)   btnEntreprise += '<a href="' + esc(pageEnt)   + '" class="btn-ent btn-page"   target="_blank" rel="noopener">🏢 Page entreprise</a>';
+    if (offresUrl) btnEntreprise += '<a href="' + esc(offresUrl) + '" class="btn-ent btn-offres" target="_blank" rel="noopener">🔍 Autres offres</a>';
 
     // Infos : contrat toujours, salaire si dispo, horaires/avantages si dispo
     var infos = "";
@@ -393,9 +417,10 @@
     // Statut expiration
     var dotClass = "s-" + (o.statut || "ok");
 
-    // Bouton postuler
-    var btnHref = o.url ? esc(o.url) : "#";
-    var btnTarget = o.url ? 'target="_blank" rel="noopener"' : "";
+    // Bouton postuler : Google Jobs en priorité, puis URL offre source
+    var postulerUrl = o.googleJobsUrl || o.url || "";
+    var btnHref   = postulerUrl ? esc(postulerUrl) : "#";
+    var btnTarget = postulerUrl ? 'target="_blank" rel="noopener"' : "";
 
     return '<div class="card ' + featured + '" style="animation-delay:' + delay + 's">'
       + '<div class="band ' + bandClass + '"></div>'
@@ -407,12 +432,13 @@
       +       '<div class="cn">' + esc(contact.nom  || "Contact Fab'RH") + "</div>"
       +       '<div class="cr">' + esc(contact.role || "") + (contact.role && o.entreprise ? " · " : "") + esc(o.entreprise || "") + "</div>"
       +     "</div>"
-      +     profilLink
+      +     profilLinks
       +   "</div>"
       +   '<div class="ent">' + esc(o.entreprise || "") + "</div>"
       +   '<div class="titre">' + esc(o.titre) + "</div>"
       +   '<div class="terr"><div class="td"></div>' + esc(o.territoire || "Savoie") + "</div>"
       +   '<div class="infos">' + infos + "</div>"
+      +   (btnEntreprise ? '<div class="btns-ent">' + btnEntreprise + "</div>" : "")
       +   (badgesHtml ? '<div class="badges">' + badgesHtml + "</div>" : "")
       + "</div>"
       + '<div class="foot">'
@@ -432,11 +458,16 @@
   }
 
   // ── État erreur ───────────────────────────────────────────────
-  function renderErreur() {
+  function renderErreur(reason) {
+    var isFetch = reason && reason.toString().includes("fetch");
+    var msg = isFetch
+      ? "Le service est temporairement inaccessible (réseau ou API). Vérifiez votre connexion."
+      : "Veuillez réessayer dans quelques instants.";
     return '<div class="state-block" style="grid-column:1/-1">'
       + '<div class="state-icon">⚠️</div>'
       + '<div class="state-title">Impossible de charger les offres</div>'
-      + '<div class="state-sub">Veuillez réessayer dans quelques instants.</div>'
+      + '<div class="state-sub">' + msg + '</div>'
+      + '<button onclick="chargerOffres()" style="margin-top:12px;padding:8px 20px;border-radius:999px;border:none;background:#1C3D6E;color:white;font-weight:600;cursor:pointer;font-size:13px">↩ Réessayer</button>'
       + "</div>";
   }
 
@@ -478,7 +509,7 @@
     } catch(err) {
       console.error("Erreur chargement offres :", err);
       document.getElementById("heroCount").textContent = "—";
-      document.getElementById("grid").innerHTML = renderErreur();
+      document.getElementById("grid").innerHTML = renderErreur(err);
     }
   }
 
