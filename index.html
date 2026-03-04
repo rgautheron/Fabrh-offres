@@ -577,7 +577,9 @@
     var chipTrouve = false;
     document.querySelectorAll(".chip").forEach(function(c){
       c.classList.remove("active");
-      if (territoire && (c.dataset.territoire || "").toLowerCase().indexOf(territoire.toLowerCase()) !== -1) {
+      var chipVal = (c.dataset.territoire || "").toLowerCase();
+      // L'offre territoire doit CONTENIR la valeur du chip (ex: "avant-pays savoyard".indexOf("avant-pays") ≥ 0)
+      if (chipVal && territoire.toLowerCase().indexOf(chipVal) !== -1) {
         c.classList.add("active");
         filtreActif = c.dataset.territoire;
         chipTrouve  = true;
