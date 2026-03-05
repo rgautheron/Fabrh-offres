@@ -152,10 +152,39 @@
     .abo-msg.err{background:#FFF0F0;color:#B91C1C;border:1px solid #FCA5A5;display:block}
     @media(max-width:560px){.abo-fields{grid-template-columns:1fr}}
 
+    /* ── Barre de recherche ── */
+    .search-wrap{
+      max-width:1000px;margin:0 auto;padding:0 16px;
+      position:relative;z-index:10;margin-top:-26px;margin-bottom:16px;
+    }
+    .search-bar{
+      display:flex;align-items:center;gap:0;
+      background:white;border-radius:50px;
+      box-shadow:0 4px 20px rgba(28,61,110,.15);
+      border:1.5px solid var(--ligne);
+      overflow:hidden;
+    }
+    .search-icon{
+      padding:0 14px 0 18px;font-size:16px;color:var(--muted);flex-shrink:0;
+    }
+    .search-input{
+      flex:1;border:none;outline:none;font-family:'DM Sans',sans-serif;
+      font-size:14px;color:var(--texte);padding:14px 0;background:transparent;
+      min-width:0;
+    }
+    .search-input::placeholder{color:var(--muted)}
+    .search-clear{
+      padding:0 16px;font-size:18px;color:var(--muted);cursor:pointer;
+      display:none;background:none;border:none;line-height:1;
+    }
+    .search-clear:hover{color:var(--rose)}
+    .search-bar:focus-within{border-color:var(--rose);box-shadow:0 4px 20px rgba(232,51,109,.15)}
+
     @media(max-width:560px){
       .grid{grid-template-columns:1fr}
       .hero-inner{flex-direction:column;align-items:flex-start}
       .hero-count{font-size:32px}
+      .search-input{font-size:13px}
     }
 
     /* ── Vue liste (Tous les postes) ── */
@@ -224,6 +253,15 @@
       <div class="hero-count" id="heroCount">—</div>
       <div class="hero-count-label">offres actives</div>
     </div>
+  </div>
+</div>
+
+<!-- BARRE DE RECHERCHE -->
+<div class="search-wrap">
+  <div class="search-bar">
+    <span class="search-icon">🔍</span>
+    <input id="searchInput" class="search-input" type="text" placeholder="Titre, employeur, territoire…" autocomplete="off" />
+    <button class="search-clear" id="searchClear" title="Effacer">×</button>
   </div>
 </div>
 
@@ -548,6 +586,25 @@
     return "";
   }
 
+  // ── Barre de recherche ────────────────────────────────────────
+  var searchQuery = "";
+  var searchInput = document.getElementById("searchInput");
+  var searchClear = document.getElementById("searchClear");
+
+  searchInput.addEventListener("input", function() {
+    searchQuery = this.value.trim().toLowerCase();
+    searchClear.style.display = searchQuery ? "block" : "none";
+    afficherOffres();
+  });
+
+  searchClear.addEventListener("click", function() {
+    searchInput.value = "";
+    searchQuery = "";
+    searchClear.style.display = "none";
+    searchInput.focus();
+    afficherOffres();
+  });
+
   // ── Données en mémoire ────────────────────────────────────────
   var allOffres = [];
   var filtreActif = "";
@@ -561,16 +618,36 @@
       ? allOffres.filter(function(o){
           var terrResolu = resoudreChipTerritoire(o.territoire || "");
           if (filtreActif === "Hors Savoie") {
-            // Hors Savoie = aucun territoire canonique reconnu
             return terrResolu === "";
           }
           return terrResolu === filtreActif
               || (o.territoire || "").toLowerCase().indexOf(filtreActif.toLowerCase()) !== -1;
         })
-      : allOffres.slice(); // copie pour ne pas modifier allOffres
+      : allOffres.slice();
+
+    // ── Filtre texte recherche ───────────────────────────────────
+    if (searchQuery) {
+      filtered = filtered.filter(function(o) {
+        var hay = [
+          o.titre || "",
+          o.entreprise || "",
+          o.territoire || "",
+          (o.contact && o.contact.nom) ? o.contact.nom : "",
+          o.contrat || ""
+        ].join(" ").toLowerCase();
+        return hay.indexOf(searchQuery) !== -1;
+      });
+    }
 
     if (!filtered.length) {
-      grid.innerHTML = renderVide(filtreActif);
+      var msg = searchQuery
+        ? "Aucune offre ne correspond à « " + searchQuery + " »"
+        : (filtreActif ? "Aucune offre sur ce territoire" : "Aucune offre disponible");
+      grid.innerHTML = '<div class="state-block" style="grid-column:1/-1">'
+        + '<div class="state-icon">🔍</div>'
+        + '<div class="state-title">' + msg + '</div>'
+        + '<div class="state-sub">Revenez prochainement, de nouvelles offres sont ajoutées régulièrement.</div>'
+        + '</div>';
       return;
     }
 
