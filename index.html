@@ -378,7 +378,45 @@
     }
     .lr-postuler:hover{ background:var(--rose-dark); transform:translateX(2px); }
 
-    /* Highlight flash après navigation depuis liste */
+    /* ── Barre secteurs ── */
+    .secteur-bar{ display:flex; gap:6px; flex-wrap:wrap; margin:-10px 0 20px; padding-bottom:2px; }
+    .schip{
+      padding:4px 12px; border-radius:999px; font-size:11.5px; font-weight:500;
+      cursor:pointer; border:1.5px solid #C7D7EF; background:white;
+      color:#4A6FA5; transition:all .18s; user-select:none; white-space:nowrap;
+    }
+    .schip:hover:not(.active){ border-color:#2D5FA6; color:#2D5FA6; }
+    .schip.active{ background:#2D5FA6; border-color:#2D5FA6; color:white; font-weight:600; box-shadow:0 3px 8px rgba(45,95,166,.22); }
+
+    /* ── Se former (card footer) ── */
+    .btn-former{
+      font-size:12px; font-weight:700; padding:9px 16px; border-radius:999px;
+      background:white; color:#2D5FA6; border:1.5px solid #C7D7EF;
+      text-decoration:none; white-space:nowrap; transition:.15s;
+    }
+    .btn-former:hover{ background:#EEF3FB; border-color:#2D5FA6; }
+
+    /* ── Se former (liste) ── */
+    .lr-former{
+      font-size:11px; font-weight:600; padding:5px 11px; border-radius:999px;
+      background:white; color:#2D5FA6; border:1.5px solid #C7D7EF;
+      text-decoration:none; white-space:nowrap; transition:.15s; margin-top:4px;
+    }
+    .lr-former:hover{ background:#EEF3FB; }
+
+    /* ── Vignette vidéo métier ── */
+    .card-video{ position:relative; border-radius:12px; overflow:hidden; margin:8px 0; cursor:pointer; flex-shrink:0; }
+    .card-video img{ display:block; width:100%; height:80px; object-fit:cover; }
+    .vid-overlay{
+      position:absolute; inset:0; background:rgba(28,61,110,.35);
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      transition:background .2s;
+    }
+    .card-video:hover .vid-overlay{ background:rgba(28,61,110,.52); }
+    .vid-play{ font-size:20px; color:white; line-height:1; }
+    .vid-label{ font-size:11px; font-weight:600; color:white; }
+
+    /* ── Highlight flash après navigation depuis liste ── */
     .card-highlight{
       animation: highlight-flash 3s ease forwards;
     }
@@ -521,6 +559,9 @@
     <div class="chip" data-territoire="Cœur de Savoie">Cœur de Savoie</div>
     <div class="chip" data-territoire="Hors Savoie">Hors Savoie</div>
   </div>
+
+  <!-- FILTRES SECTEUR (construits dynamiquement) -->
+  <div class="secteur-bar" id="secteurBar" style="display:none"></div>
 
   <!-- GRILLE -->
   <div id="grid" class="grid">
@@ -748,6 +789,23 @@
     var btnHref   = postulerUrl ? esc(postulerUrl) : "#";
     var btnTarget = postulerUrl ? 'target="_blank" rel="noopener"' : "";
 
+    // Vidéo YouTube
+    var videoHtml = "";
+    if (o.videoUrl) {
+      var ytId = (function(u){ var m = u.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/); return m ? m[1] : null; })(o.videoUrl);
+      if (ytId) {
+        videoHtml = '<a href="' + esc(o.videoUrl) + '" class="card-video" target="_blank" rel="noopener" onclick="event.stopPropagation()">'
+          + '<img src="https://img.youtube.com/vi/' + ytId + '/mqdefault.jpg" alt="Voir le métier en vidéo" loading="lazy">'
+          + '<div class="vid-overlay"><span class="vid-play">▶</span><span class="vid-label">Voir le métier en vidéo</span></div>'
+          + '</a>';
+      }
+    }
+
+    // Bouton Se former
+    var formerHtml = o.formationUrl
+      ? '<a href="' + esc(o.formationUrl) + '" class="btn-former" target="_blank" rel="noopener" onclick="event.stopPropagation()">Se former →</a>'
+      : "";
+
     return '<div class="card ' + featured + '" data-id="' + o.id + '" style="animation-delay:' + delay + 's">'
       + '<div class="band ' + bandClass + '"></div>'
       + '<div class="inner">'
@@ -760,6 +818,7 @@
       +     "</div>"
       +     profilLinks
       +   "</div>"
+      +   videoHtml
       +   '<div class="ent">' + esc(o.entreprise || "") + "</div>"
       +   '<div class="titre">' + esc(o.titre) + "</div>"
       +   '<div class="terr"><div class="td"></div>' + esc(o.territoire || "Savoie") + "</div>"
@@ -769,7 +828,10 @@
       + "</div>"
       + '<div class="foot">'
       +   '<div class="exp"><div class="ed ' + dotClass + '"></div>' + esc(o.label || "") + "</div>"
-      +   '<a href="' + btnHref + '" class="btn-postuler" ' + btnTarget + ">Postuler →</a>"
+      +   '<div style="display:flex;gap:8px;align-items:center">'
+      +     formerHtml
+      +     '<a href="' + btnHref + '" class="btn-postuler" ' + btnTarget + ">Postuler →</a>"
+      +   '</div>'
       + "</div>"
       + "</div>";
   }
@@ -850,6 +912,7 @@
   // ── Données en mémoire ────────────────────────────────────────
   var allOffres = [];
   var filtreActif = "";
+  var filtreActifSecteur = "";
 
   // ── Afficher selon le filtre actif ────────────────────────────
   var offresIdPendingHighlight = null; // id de la carte à highlighter après rendu
@@ -866,6 +929,13 @@
               || (o.territoire || "").toLowerCase().indexOf(filtreActif.toLowerCase()) !== -1;
         })
       : allOffres.slice();
+
+    // ── Filtre secteur ───────────────────────────────────────────
+    if (filtreActifSecteur) {
+      filtered = filtered.filter(function(o){
+        return (o.secteur || "Autres secteurs") === filtreActifSecteur;
+      });
+    }
 
     // ── Filtre texte recherche ───────────────────────────────────
     if (searchQuery) {
@@ -884,7 +954,7 @@
     if (!filtered.length) {
       var msg = searchQuery
         ? "Aucune offre ne correspond à « " + searchQuery + " »"
-        : (filtreActif ? "Aucune offre sur ce territoire" : "Aucune offre disponible");
+        : (filtreActifSecteur ? "Aucune offre dans ce secteur" + (filtreActif ? " sur ce territoire" : "") : (filtreActif ? "Aucune offre sur ce territoire" : "Aucune offre disponible"));
       grid.innerHTML = '<div class="state-block" style="grid-column:1/-1">'
         + '<div class="state-icon">🔍</div>'
         + '<div class="state-title">' + msg + '</div>'
@@ -982,6 +1052,7 @@
     var dateLabel   = o.label || "";
     var postulerUrl = o.url || "#";
     var hasPostuler = !!o.url;
+    var hasFormer   = !!o.formationUrl;
 
     return '<div class="list-row" style="--lr-accent:' + accent + '" data-territoire="' + esc(o.territoire || "") + '" data-id="' + o.id + '">'
       + '<div class="lr-main">'
@@ -999,9 +1070,10 @@
       +     (dateLabel ? '<span class="lr-date">'    + esc(dateLabel) + '</span>' : '')
       +   '</div>'
       + '</div>'
-      + (hasPostuler
-          ? '<div class="lr-right"><a href="' + esc(postulerUrl) + '" class="lr-postuler" target="_blank" rel="noopener" onclick="event.stopPropagation()">Postuler →</a></div>'
-          : '')
+      + '<div class="lr-right" style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">'
+      +   (hasPostuler ? '<a href="' + esc(postulerUrl) + '" class="lr-postuler" target="_blank" rel="noopener" onclick="event.stopPropagation()">Postuler →</a>' : '')
+      +   (hasFormer   ? '<a href="' + esc(o.formationUrl) + '" class="lr-former" target="_blank" rel="noopener" onclick="event.stopPropagation()">Se former →</a>' : '')
+      + '</div>'
       + '</div>';
   }
 
@@ -1015,6 +1087,7 @@
 
       allOffres = data.offres;
       document.getElementById("heroCount").textContent = data.total || 0;
+      buildSecteurChips(allOffres);
       afficherOffres();
 
     } catch(err) {
@@ -1035,6 +1108,46 @@
     filtreActif = chip.dataset.territoire || "";
     afficherOffres();
   });
+
+  // ── Filtres secteur ───────────────────────────────────────────
+  document.getElementById("secteurBar").addEventListener("click", function(e) {
+    var chip = e.target.closest(".schip");
+    if (!chip) return;
+
+    document.querySelectorAll(".schip").forEach(function(c){ c.classList.remove("active"); });
+    chip.classList.add("active");
+
+    filtreActifSecteur = chip.dataset.secteur || "";
+    afficherOffres();
+  });
+
+  // ── Construction dynamique des chips secteur ──────────────────
+  function buildSecteurChips(offres) {
+    var bar = document.getElementById("secteurBar");
+    if (!bar) return;
+
+    // Compter les offres par secteur
+    var counts = {};
+    offres.forEach(function(o){
+      var s = o.secteur || "Autres secteurs";
+      counts[s] = (counts[s] || 0) + 1;
+    });
+
+    // Trier par fréquence décroissante, "Autres secteurs" toujours en dernier
+    var secteurs = Object.keys(counts).sort(function(a, b){
+      if (a === "Autres secteurs") return 1;
+      if (b === "Autres secteurs") return -1;
+      return counts[b] - counts[a];
+    });
+
+    if (!secteurs.length) { bar.style.display = "none"; return; }
+
+    bar.style.display = "flex";
+    bar.innerHTML = '<div class="schip active" data-secteur="">🗂 Tous les secteurs</div>'
+      + secteurs.map(function(s){
+          return '<div class="schip" data-secteur="' + esc(s) + '">' + esc(s) + ' <span style="opacity:.6;font-size:10px">(' + counts[s] + ')</span></div>';
+        }).join("");
+  }
 
   // ── Init : lecture du paramètre ?t= dans l'URL ───────────────
   // Exemple : offres.fabrh-savoie.fr/?t=grand-chambery
