@@ -873,7 +873,53 @@
     afficherOffres();
   });
 
-  // ── Init ──────────────────────────────────────────────────────
+  // ── Init : lecture du paramètre ?t= dans l'URL ───────────────
+  // Exemple : offres.fabrh-savoie.fr/?t=grand-chambery
+  // Depuis Wix, chaque bouton territoire pointe vers l'URL avec ce paramètre.
+  var TERRITOIRE_MAP = {
+    "grand-chambery":  "Grand Chambéry",
+    "arlyse":          "Arlysère",
+    "arlysere":        "Arlysère",
+    "maurienne":       "Maurienne",
+    "grand-lac":       "Grand Lac",
+    "tarentaise":      "Tarentaise",
+    "avant-pays":      "Avant-Pays",
+    "coeur-de-savoie": "Cœur de Savoie",
+    "hors-savoie":     "Hors Savoie"
+  };
+
+  (function applyUrlFilter() {
+    var params = new URLSearchParams(window.location.search);
+    var t = (params.get("t") || "").toLowerCase().trim();
+    if (!t) return;
+
+    var label = TERRITOIRE_MAP[t] || null;
+
+    // Tentative de correspondance souple si pas dans le mapping exact
+    if (!label) {
+      var chips = document.querySelectorAll(".chip[data-territoire]");
+      chips.forEach(function(chip) {
+        var v = (chip.dataset.territoire || "").toLowerCase()
+          .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+          .replace(/[^a-z0-9]/g,"-");
+        if (v === t) label = chip.dataset.territoire;
+      });
+    }
+
+    if (!label) return;
+
+    document.querySelectorAll(".chip").forEach(function(c){ c.classList.remove("active"); });
+    var target = document.querySelector(".chip[data-territoire='" + label + "']");
+    if (target) {
+      target.classList.add("active");
+      filtreActif = label;
+      // Scroll doux vers les chips après chargement
+      setTimeout(function(){
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 600);
+    }
+  })();
+
   chargerOffres();
 
   // ── Nav mobile ──
