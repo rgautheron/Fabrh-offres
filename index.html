@@ -300,35 +300,84 @@
 
     /* ── Vue liste (Tous les postes) ── */
     .list-view{ display:flex; flex-direction:column; gap:0; }
+    /* ── Vue liste modernisée ── */
     .list-row{
-      display:grid;
-      grid-template-columns: 1fr 160px 130px 130px 90px 36px;
+      position:relative;
+      display:flex;
       align-items:center;
-      gap:10px;
-      padding:11px 16px;
+      gap:16px;
+      padding:15px 20px 15px 22px;
       background:white;
       border-bottom:1px solid var(--ligne);
       cursor:pointer;
-      transition:background .15s;
+      transition:background .15s, box-shadow .15s;
+      overflow:hidden;
+    }
+    .list-row::before{
+      content:'';
+      position:absolute;
+      left:0; top:0; bottom:0;
+      width:4px;
+      background:var(--lr-accent,#dde3ec);
+      border-radius:0;
+      transition:width .15s;
     }
     .list-row:first-child{ border-radius:14px 14px 0 0; }
     .list-row:last-child { border-radius:0 0 14px 14px; border-bottom:none; }
     .list-row:only-child { border-radius:14px; }
-    .list-row:hover{ background:#f4f6fa; }
-    .list-titre{
-      font-size:13px; font-weight:700; color:var(--texte);
+    .list-row:hover{ background:#f6f8fd; }
+    .list-row:hover::before{ width:6px; }
+
+    /* Zone principale */
+    .lr-main{ flex:1; min-width:0; display:flex; flex-direction:column; gap:5px; }
+
+    /* Ligne 1 : titre + badges */
+    .lr-title-row{ display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+    .lr-titre{
+      font-size:14.5px; font-weight:700; color:var(--texte);
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      max-width:480px;
     }
-    .list-badges{ display:flex; gap:4px; margin-top:2px; flex-wrap:wrap; }
-    .list-badge{ font-size:10px; padding:1px 6px; border-radius:999px; font-weight:600; }
-    .lb-chance  { background:#FEF9C3; color:#854D0E; }
+    .lr-badge{ font-size:10px; padding:2px 8px; border-radius:999px; font-weight:600; white-space:nowrap; flex-shrink:0; }
+    .lb-chance  { background:#FEF3C7; color:#92400E; }
     .lb-ouvert  { background:#DCFCE7; color:#166534; }
     .lb-perm    { background:#EEF3FB; color:#1C3D6E; }
-    .list-ent  { font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .list-terr { font-size:12px; color:var(--bleu-med); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .list-contrat{ font-size:11px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .list-date { font-size:11px; color:var(--muted); text-align:right; white-space:nowrap; }
-    .list-arrow{ color:var(--bleu-med); font-size:16px; text-align:center; }
+
+    /* Ligne 2 : entreprise + pill territoire */
+    .lr-meta{ display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+    .lr-ent{ font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:200px; }
+    .lr-dot{ font-size:10px; color:#c8d0dc; }
+    .lr-terr-pill{
+      font-size:10.5px; font-weight:700;
+      padding:2px 9px;
+      border-radius:999px;
+      border:1.5px solid var(--lr-accent,#dde3ec);
+      color:var(--lr-accent,#7B8599);
+      background:white;
+      white-space:nowrap;
+      letter-spacing:.01em;
+    }
+
+    /* Ligne 3 : contrat + date */
+    .lr-info{ display:flex; align-items:center; gap:12px; }
+    .lr-contrat{ font-size:11.5px; color:var(--muted); }
+    .lr-date{ font-size:10.5px; color:#b5bfce; }
+
+    /* Bouton droite */
+    .lr-right{ flex-shrink:0; display:flex; align-items:center; }
+    .lr-postuler{
+      font-size:12px; font-weight:700;
+      padding:8px 18px;
+      border-radius:999px;
+      background:var(--rose);
+      color:white;
+      text-decoration:none;
+      white-space:nowrap;
+      transition:background .15s, transform .15s;
+      box-shadow:0 3px 10px rgba(232,51,109,.2);
+    }
+    .lr-postuler:hover{ background:var(--rose-dark); transform:translateX(2px); }
+
     /* Highlight flash après navigation depuis liste */
     .card-highlight{
       animation: highlight-flash 3s ease forwards;
@@ -338,10 +387,10 @@
       70%  { box-shadow: 0 0 0 3px #E8336D, 0 8px 32px rgba(232,51,109,.25); }
       100% { box-shadow: none; }
     }
-    @media(max-width:600px){
-      .list-row{ grid-template-columns: 1fr 100px 36px; }
-      .list-ent,.list-terr,.list-contrat,.list-date{ display:none; }
-      .list-terr{ display:block; }
+    @media(max-width:640px){
+      .lr-titre{ max-width:240px; font-size:13.5px; }
+      .lr-ent,.lr-date{ display:none; }
+      .lr-postuler{ padding:7px 13px; font-size:11px; }
     }
   </style>
 </head>
@@ -905,25 +954,54 @@
     afficherOffres();
   }
 
+  // ── Couleurs accent par territoire ───────────────────────────
+  var TERR_COLORS = {
+    "Grand Chambéry": "#2D5FA6",
+    "Arlysère":       "#D97706",
+    "Maurienne":      "#7C3AED",
+    "Grand Lac":      "#0891B2",
+    "Tarentaise":     "#E8336D",
+    "Avant-Pays":     "#16A34A",
+    "Avant-Pays Savoyard": "#16A34A",
+    "Cœur de Savoie": "#4F46E5",
+    "Hors Savoie":    "#6B7280"
+  };
+
   // ── Rendu d'une ligne (vue liste) ─────────────────────────────
   function renderRow(o) {
+    var accent = TERR_COLORS[o.territoire] || "#9BA3AF";
+
     var badgesHtml = "";
     (o.badges || []).forEach(function(b){
-      if (b.type === "chance")   badgesHtml += '<span class="list-badge lb-chance">🔥 Pénurique</span>';
-      if (b.type === "ouvert")   badgesHtml += '<span class="list-badge lb-ouvert">✅ Ouvert</span>';
-      if (b.type === "permanent")badgesHtml += '<span class="list-badge lb-perm">🔁 Permanent</span>';
+      if (b.type === "chance")    badgesHtml += '<span class="lr-badge lb-chance">🔥 Pénurique</span>';
+      if (b.type === "ouvert")    badgesHtml += '<span class="lr-badge lb-ouvert">✅ Ouvert</span>';
+      if (b.type === "permanent") badgesHtml += '<span class="lr-badge lb-perm">🔁 Permanent</span>';
     });
-    var dateLabel = o.label || "";
-    var contrat   = (o.contrat || "").split("·")[0].trim(); // juste "CDI" ou "CDD 4 mois"
-    return '<div class="list-row" data-territoire="' + esc(o.territoire || "") + '" data-id="' + o.id + '">'
-      + '<div><div class="list-titre">' + esc(o.titre) + '</div>'
-      +   (badgesHtml ? '<div class="list-badges">' + badgesHtml + '</div>' : '')
+
+    var contrat     = (o.contrat || "").split("·")[0].trim();
+    var dateLabel   = o.label || "";
+    var postulerUrl = o.url || "#";
+    var hasPostuler = !!o.url;
+
+    return '<div class="list-row" style="--lr-accent:' + accent + '" data-territoire="' + esc(o.territoire || "") + '" data-id="' + o.id + '">'
+      + '<div class="lr-main">'
+      +   '<div class="lr-title-row">'
+      +     '<span class="lr-titre">' + esc(o.titre) + '</span>'
+      +     badgesHtml
+      +   '</div>'
+      +   '<div class="lr-meta">'
+      +     (o.entreprise ? '<span class="lr-ent">' + esc(o.entreprise) + '</span>' : '')
+      +     (o.entreprise ? '<span class="lr-dot">•</span>' : '')
+      +     '<span class="lr-terr-pill">📍 ' + esc(o.territoire || "Savoie") + '</span>'
+      +   '</div>'
+      +   '<div class="lr-info">'
+      +     (contrat   ? '<span class="lr-contrat">📋 ' + esc(contrat)   + '</span>' : '')
+      +     (dateLabel ? '<span class="lr-date">'    + esc(dateLabel) + '</span>' : '')
+      +   '</div>'
       + '</div>'
-      + '<div class="list-ent">' + esc(o.entreprise || "") + '</div>'
-      + '<div class="list-terr">' + esc(o.territoire || "Savoie") + '</div>'
-      + '<div class="list-contrat">' + esc(contrat) + '</div>'
-      + '<div class="list-date">' + esc(dateLabel) + '</div>'
-      + '<div class="list-arrow">›</div>'
+      + (hasPostuler
+          ? '<div class="lr-right"><a href="' + esc(postulerUrl) + '" class="lr-postuler" target="_blank" rel="noopener" onclick="event.stopPropagation()">Postuler →</a></div>'
+          : '')
       + '</div>';
   }
 
