@@ -288,11 +288,29 @@
 
     @media(max-width:560px){
       .grid{grid-template-columns:1fr}
-      .top-bar{flex-direction:column;align-items:flex-start;gap:12px;padding:12px 16px}
-      .tb-search{width:100%}
+
+      /* Top-bar mobile : on ne garde QUE la recherche, sticky sous le nav */
+      .top-bar{
+        flex-direction:row;
+        align-items:center;
+        gap:0;
+        padding:10px 14px;
+        height:auto;
+        position:sticky;
+        top:70px;          /* colle juste sous le nav (70px) */
+        z-index:900;       /* sous le nav (z-index:9999) mais au-dessus du contenu */
+      }
+      /* Masquer logo, compteur et partenaires — search bar uniquement */
+      .tb-brand{display:none}
+      .tb-stat{display:none}
+      .tb-partners{display:none}
+
+      .tb-search{width:100%;padding:0}
       .tb-sep{display:none}
-      .tb-count{font-size:26px}
-      .search-input{font-size:13px}
+      .search-input{font-size:14px}
+
+      /* Compenser la hauteur cumulée (nav 70px + search ~52px) */
+      .filter-bar{padding-top:6px}
     }
     @media(max-width:860px){
       .tb-partners{display:none}
@@ -1072,7 +1090,6 @@
       + '</div>'
       + '<div class="lr-right" style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">'
       +   (hasPostuler ? '<a href="' + esc(postulerUrl) + '" class="lr-postuler" target="_blank" rel="noopener" onclick="event.stopPropagation()">Postuler →</a>' : '')
-      +   (hasFormer   ? '<a href="' + esc(o.formationUrl) + '" class="lr-former" target="_blank" rel="noopener" onclick="event.stopPropagation()">Se former →</a>' : '')
       + '</div>'
       + '</div>';
   }
