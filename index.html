@@ -434,6 +434,52 @@
     .vid-play{ font-size:20px; color:white; line-height:1; }
     .vid-label{ font-size:11px; font-weight:600; color:white; }
 
+    /* ── Bloc "Pour en savoir plus" (sous le footer de la carte) ── */
+    .card-metier-extra{
+      border-top:1px solid var(--ligne);
+      padding:12px 18px 14px;
+      background:#FAFBFD;
+      border-radius:0 0 20px 20px;
+    }
+    .metier-sep{
+      display:flex; align-items:center; gap:8px;
+      font-size:10.5px; font-weight:700; color:var(--muted);
+      text-transform:uppercase; letter-spacing:.6px;
+      margin-bottom:10px;
+    }
+    .metier-sep::after{
+      content:''; flex:1; height:1px; background:var(--ligne);
+    }
+    /* Vignette vidéo dans le bloc métier */
+    .card-video{
+      position:relative; border-radius:10px; overflow:hidden;
+      margin-bottom:10px; cursor:pointer; flex-shrink:0;
+    }
+    .card-video img{ display:block; width:100%; height:76px; object-fit:cover; }
+    .vid-overlay{
+      position:absolute; inset:0; background:rgba(28,61,110,.38);
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      transition:background .2s;
+    }
+    .card-video:hover .vid-overlay{ background:rgba(28,61,110,.55); }
+    .vid-play{ font-size:18px; color:white; line-height:1; }
+    .vid-label{ font-size:11px; font-weight:600; color:white; }
+    /* Boutons du bloc métier */
+    .metier-btns{ display:flex; gap:7px; flex-wrap:wrap; }
+    .btn-former, .btn-info-metier{
+      font-size:11.5px; font-weight:700; padding:8px 14px; border-radius:999px;
+      text-decoration:none; white-space:nowrap; transition:.15s;
+      display:inline-flex; align-items:center; gap:5px;
+    }
+    .btn-former{
+      background:white; color:#2D5FA6; border:1.5px solid #C7D7EF;
+    }
+    .btn-former:hover{ background:#EEF3FB; border-color:#2D5FA6; }
+    .btn-info-metier{
+      background:white; color:#166534; border:1.5px solid #A7F3D0;
+    }
+    .btn-info-metier:hover{ background:#F0FDF6; border-color:#166534; }
+
     /* ── Highlight flash après navigation depuis liste ── */
     .card-highlight{
       animation: highlight-flash 3s ease forwards;
@@ -821,8 +867,23 @@
 
     // Bouton Se former
     var formerHtml = o.formationUrl
-      ? '<a href="' + esc(o.formationUrl) + '" class="btn-former" target="_blank" rel="noopener" onclick="event.stopPropagation()">Se former →</a>'
+      ? '<a href="' + esc(o.formationUrl) + '" class="btn-former" target="_blank" rel="noopener" onclick="event.stopPropagation()">🎓 Se former →</a>'
       : "";
+
+    // Bouton Info métier (France Travail Métierscope)
+    var infoMetierHtml = o.romeCode
+      ? '<a href="https://candidat.francetravail.fr/metierscope/fiche-metier/' + esc(o.romeCode) + '" class="btn-info-metier" target="_blank" rel="noopener" onclick="event.stopPropagation()">📋 Info métier →</a>'
+      : "";
+
+    // Bloc "Pour en savoir plus" — visible seulement si au moins un élément disponible
+    var metierExtraHtml = "";
+    if (videoHtml || formerHtml || infoMetierHtml) {
+      metierExtraHtml = '<div class="card-metier-extra">'
+        + '<div class="metier-sep">Pour en savoir plus sur ce métier</div>'
+        + videoHtml
+        + (formerHtml || infoMetierHtml ? '<div class="metier-btns">' + formerHtml + infoMetierHtml + '</div>' : '')
+        + '</div>';
+    }
 
     return '<div class="card ' + featured + '" data-id="' + o.id + '" style="animation-delay:' + delay + 's">'
       + '<div class="band ' + bandClass + '"></div>'
@@ -836,7 +897,6 @@
       +     "</div>"
       +     profilLinks
       +   "</div>"
-      +   videoHtml
       +   '<div class="ent">' + esc(o.entreprise || "") + "</div>"
       +   '<div class="titre">' + esc(o.titre) + "</div>"
       +   '<div class="terr"><div class="td"></div>' + esc(o.territoire || "Savoie") + "</div>"
@@ -846,11 +906,9 @@
       + "</div>"
       + '<div class="foot">'
       +   '<div class="exp"><div class="ed ' + dotClass + '"></div>' + esc(o.label || "") + "</div>"
-      +   '<div style="display:flex;gap:8px;align-items:center">'
-      +     formerHtml
-      +     '<a href="' + btnHref + '" class="btn-postuler" ' + btnTarget + ">Postuler →</a>"
-      +   '</div>'
+      +   '<a href="' + btnHref + '" class="btn-postuler" ' + btnTarget + ">Postuler →</a>"
       + "</div>"
+      + metierExtraHtml
       + "</div>";
   }
 
