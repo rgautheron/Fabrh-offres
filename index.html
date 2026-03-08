@@ -423,7 +423,6 @@
     .lr-former:hover{ background:#EEF3FB; }
 
     /* ── Vignette vidéo métier ── */
-    .card-video{ position:relative; border-radius:12px; overflow:hidden; margin:8px 0; cursor:pointer; flex-shrink:0; }
     .card-video img{ display:block; width:100%; height:80px; object-fit:cover; }
     .vid-overlay{
       position:absolute; inset:0; background:rgba(28,61,110,.35);
@@ -856,21 +855,12 @@
     // Vidéo YouTube (ou autre)
     var videoHtml = "";
     if (o.videoUrl) {
-      // Regex élargi : watch?v=, youtu.be/, embed/, shorts/
-      var ytId = (function(u){
-        var m = u.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([^&?\s\/]+)/);
-        return m ? m[1] : null;
-      })(o.videoUrl);
-
+      var ytId = (function(u){ var m = u.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/); return m ? m[1] : null; })(o.videoUrl);
       if (ytId) {
-        // Vignette YouTube avec thumbnail
-        videoHtml = '<a href="https://www.youtube.com/watch?v=' + ytId + '" class="card-video" target="_blank" rel="noopener" onclick="event.stopPropagation()">'
+        videoHtml = '<a href="' + esc(o.videoUrl) + '" class="card-video" target="_blank" rel="noopener" onclick="event.stopPropagation()">'
           + '<img src="https://img.youtube.com/vi/' + ytId + '/mqdefault.jpg" alt="Voir le métier en vidéo" loading="lazy">'
           + '<div class="vid-overlay"><span class="vid-play">▶</span><span class="vid-label">Voir le métier en vidéo</span></div>'
           + '</a>';
-      } else {
-        // Fallback pour URL non-YouTube (France TV, Dailymotion, etc.)
-        videoHtml = '<a href="' + esc(o.videoUrl) + '" class="btn-former" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="background:#F0F4FF">▶ Voir le métier en vidéo</a>';
       }
     }
 
